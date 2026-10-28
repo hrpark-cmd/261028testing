@@ -68,9 +68,12 @@ export default function ContentForm({ heading, withCourseFields, initial, submit
   }
 
   return (
-    <Card className="border-brand-100 bg-brand-50/30">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold text-slate-900">{heading}</h2>
+    <Card className="ring-4 ring-brand-50">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="border-b border-slate-100 pb-4">
+          <p className="eyebrow">Admin</p>
+          <h2 className="mt-1 font-serif text-xl font-bold text-slate-900">{heading}</h2>
+        </div>
 
         {withCourseFields && (
           <div className="grid gap-4 sm:grid-cols-[1fr_8rem]">
@@ -115,14 +118,14 @@ export default function ContentForm({ heading, withCourseFields, initial, submit
           </button>
         </fieldset>
 
-        {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
+        {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700" role="alert">{error}</p>}
 
-        <div className="flex gap-2">
-          <button type="submit" className="btn-primary" disabled={saving}>
-            {saving ? "저장 중…" : submitLabel}
-          </button>
+        <div className="flex justify-end gap-2 border-t border-slate-100 pt-5">
           <button type="button" className="btn-secondary" onClick={onCancel} disabled={saving}>
             취소
+          </button>
+          <button type="submit" className="btn-primary px-6" disabled={saving}>
+            {saving ? "저장 중…" : submitLabel}
           </button>
         </div>
       </form>

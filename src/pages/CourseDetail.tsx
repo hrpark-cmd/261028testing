@@ -5,11 +5,9 @@ import { courseService } from "../services";
 import { useAuth } from "../contexts/AuthContext";
 import { useAsync } from "../lib/useAsync";
 import { toErrorMessage } from "../lib/format";
+import ContentDetail from "../components/ContentDetail";
 import ContentForm from "../components/ContentForm";
-import DetailHeader from "../components/DetailHeader";
-import LinkList from "../components/LinkList";
-import MarkdownView from "../components/MarkdownView";
-import RelatedDiscussion from "../components/RelatedDiscussion";
+import Icon from "../components/Icon";
 import { Empty, ErrorMessage, Loading } from "../components/Status";
 
 export default function CourseDetail() {
@@ -20,12 +18,14 @@ export default function CourseDetail() {
   const [editing, setEditing] = useState(false);
 
   if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} onRetry={reload} />;
+  if (error) return <div className="container-page py-10"><ErrorMessage message={error} onRetry={reload} /></div>;
   if (!item)
     return (
-      <Empty>
-        수업자료를 찾을 수 없습니다. <Link to="/courses" className="text-brand-700 underline">목록으로</Link>
-      </Empty>
+      <div className="container-page py-16">
+        <Empty>
+          수업자료를 찾을 수 없습니다. <Link to="/courses" className="font-semibold text-brand-700 underline">목록으로</Link>
+        </Empty>
+      </div>
     );
 
   async function handleDelete() {
@@ -40,49 +40,47 @@ export default function CourseDetail() {
 
   if (editing)
     return (
-      <ContentForm
-        heading="수업자료 수정"
-        withCourseFields
-        initial={item}
-        onCancel={() => setEditing(false)}
-        onSubmit={async ({ base, course, week }) => {
-          await courseService.update(id, { ...base, course, week });
-          setEditing(false);
-          reload();
-        }}
-      />
+      <div className="container-page py-10">
+        <ContentForm
+          heading="수업자료 수정"
+          withCourseFields
+          initial={item}
+          onCancel={() => setEditing(false)}
+          onSubmit={async ({ base, course, week }) => {
+            await courseService.update(id, { ...base, course, week });
+            setEditing(false);
+            reload();
+          }}
+        />
+      </div>
     );
 
   return (
-    <article>
-      <DetailHeader
-        backTo="/courses"
-        backLabel="수업자료 목록"
-        title={item.title}
-        createdAt={item.createdAt}
-        tags={item.tags}
-        meta={
-          <span className="rounded bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
-            {item.course} · {item.week}주차
-          </span>
-        }
-        adminActions={
-          user?.isAdmin && (
-            <>
-              <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>수정</button>
-              <button type="button" className="btn-danger" onClick={handleDelete}>삭제</button>
-            </>
-          )
-        }
-      />
-      <MarkdownView content={item.summary} />
-      {item.links.length > 0 && (
-        <section className="mt-8">
-          <h2 className="mb-3 text-lg font-semibold text-slate-900">자료 링크</h2>
-          <LinkList links={item.links} />
-        </section>
-      )}
-      <RelatedDiscussion type="course" id={item.id} />
-    </article>
+    <ContentDetail
+      item={item}
+      type="course"
+      eyebrow="Course Material"
+      back={{ to: "/courses", label: "수업자료 목록" }}
+      meta={
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-accent-50 px-2 py-0.5 font-semibold text-accent-600">
+          <Icon name="cap" className="h-4 w-4" />
+          {item.course} · {item.week}주차
+        </span>
+      }
+      adminActions={
+        user?.isAdmin && (
+          <>
+            <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>
+              <Icon name="pencil" className="h-4 w-4" />
+              수정
+            </button>
+            <button type="button" className="btn-danger" onClick={handleDelete}>
+              <Icon name="trash" className="h-4 w-4" />
+              삭제
+            </button>
+          </>
+        )
+      }
+    />
   );
 }

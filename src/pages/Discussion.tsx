@@ -6,8 +6,26 @@ import { postService } from "../services";
 import type { Post } from "../services/types";
 import { POSTS_PAGE_SIZE } from "../config/site";
 import { useAuth } from "../contexts/AuthContext";
-import { formatDate, toErrorMessage } from "../lib/format";
+import { excerpt, formatDate, toErrorMessage } from "../lib/format";
+import Avatar from "../components/Avatar";
+import Icon from "../components/Icon";
+import PageHeader from "../components/PageHeader";
 import { Empty, ErrorMessage, Loading } from "../components/Status";
+
+function RelatedBadge({ type }: { type: Post["relatedType"] }) {
+  if (!type) return null;
+  return type === "research" ? (
+    <span className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-1.5 py-0.5 text-[11px] font-semibold text-brand-700">
+      <Icon name="book" className="h-3 w-3" />
+      연구
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1 rounded-md bg-accent-50 px-1.5 py-0.5 text-[11px] font-semibold text-accent-600">
+      <Icon name="cap" className="h-3 w-3" />
+      수업
+    </span>
+  );
+}
 
 export default function Discussion() {
   const { user } = useAuth();
@@ -38,55 +56,69 @@ export default function Discussion() {
   }, [loadPage]);
 
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="page-title">토론</h1>
-          <p className="mt-1 text-slate-600">연구 결과와 수업 내용에 대해 자유롭게 질문하고 토론하세요.</p>
-        </div>
-        {user ? (
-          <Link to="/discussion/new" className="btn-primary">글쓰기</Link>
-        ) : (
-          <Link to="/login?redirect=/discussion/new" className="btn-secondary">로그인하고 글쓰기</Link>
+    <>
+      <PageHeader
+        eyebrow="Discussion"
+        title="토론"
+        description="연구 결과와 수업 내용에 대해 자유롭게 질문하고 토론하세요."
+        actions={
+          user ? (
+            <Link to="/discussion/new" className="btn-primary">
+              <Icon name="pencil" className="h-4 w-4" />
+              글쓰기
+            </Link>
+          ) : (
+            <Link to="/login?redirect=/discussion/new" className="btn-secondary">
+              로그인하고 글쓰기
+            </Link>
+          )
+        }
+      />
+
+      <div className="container-page py-10">
+        {error && <ErrorMessage message={error} onRetry={() => loadPage(null, true)} />}
+        {!loading && !error && posts.length === 0 && <Empty>아직 글이 없습니다. 첫 글을 남겨 보세요.</Empty>}
+
+        {posts.length > 0 && (
+          <ul className="card divide-y divide-slate-100 overflow-hidden" aria-label="게시글 목록">
+            {posts.map((p) => (
+              <li key={p.id}>
+                <Link to={`/discussion/${p.id}`} className="group flex gap-4 px-5 py-5 transition hover:bg-slate-50/80 sm:px-6">
+                  <Avatar name={p.authorName} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <RelatedBadge type={p.relatedType} />
+                      <h2 className="font-semibold text-slate-900 group-hover:text-brand-700">{p.title}</h2>
+                    </div>
+                    <p className="mt-1 line-clamp-1 text-sm text-slate-500">{excerpt(p.content, 120)}</p>
+                    <p className="mt-2 text-xs text-slate-400">
+                      <span className="font-medium text-slate-600">{p.authorName}</span> · {formatDate(p.createdAt)}
+                    </p>
+                  </div>
+                  <span
+                    className={`inline-flex h-fit shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      p.commentCount > 0 ? "bg-brand-50 text-brand-700" : "bg-slate-100 text-slate-500"
+                    }`}
+                    title="댓글 수"
+                  >
+                    <Icon name="message" className="h-3.5 w-3.5" />
+                    {p.commentCount}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {loading && <Loading />}
+        {!loading && hasMore && (
+          <div className="mt-6 text-center">
+            <button type="button" className="btn-secondary px-6" onClick={() => loadPage(cursor, false)}>
+              더 보기
+            </button>
+          </div>
         )}
       </div>
-
-      {error && <ErrorMessage message={error} onRetry={() => loadPage(null, true)} />}
-      {!loading && !error && posts.length === 0 && <Empty>아직 글이 없습니다. 첫 글을 남겨 보세요.</Empty>}
-
-      <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
-        {posts.map((p) => (
-          <li key={p.id}>
-            <Link to={`/discussion/${p.id}`} className="block px-4 py-3 hover:bg-slate-50 sm:px-5">
-              <div className="flex items-start justify-between gap-3">
-                <h2 className="font-medium text-slate-900">
-                  {p.relatedType && (
-                    <span className="mr-2 rounded bg-brand-50 px-1.5 py-0.5 align-middle text-xs font-normal text-brand-700">
-                      {p.relatedType === "research" ? "연구" : "수업"}
-                    </span>
-                  )}
-                  {p.title}
-                </h2>
-                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600" title="댓글 수">
-                  💬 {p.commentCount}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-slate-500">
-                {p.authorName} · {formatDate(p.createdAt)}
-              </p>
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      {loading && <Loading />}
-      {!loading && hasMore && (
-        <div className="mt-4 text-center">
-          <button type="button" className="btn-secondary" onClick={() => loadPage(cursor, false)}>
-            더 보기
-          </button>
-        </div>
-      )}
-    </div>
+    </>
   );
 }

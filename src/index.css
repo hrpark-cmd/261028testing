@@ -2,49 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-[#f7f8fb] font-sans text-slate-800 antialiased;
+    word-break: keep-all; /* 한글 단어 중간에서 줄바꿈하지 않기 */
+  }
+  ::selection {
+    @apply bg-brand-100 text-brand-900;
+  }
+}
+
 /* 자주 쓰는 스타일 묶음 */
 @layer components {
-  .btn {
-    @apply inline-flex items-center justify-center gap-1 rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   }
-  .btn-primary {
-    @apply btn bg-brand-700 text-white hover:bg-brand-800;
+  .card {
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-soft;
   }
-  .btn-secondary {
-    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
-  }
-  .btn-danger {
-    @apply btn border border-red-200 bg-white text-red-700 hover:bg-red-50;
-  }
-  .input {
-    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
-  }
-  .label {
-    @apply mb-1 block text-sm font-medium text-slate-700;
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.16em] text-accent-600;
   }
   .page-title {
-    @apply text-2xl font-bold text-slate-900 sm:text-3xl;
+    @apply font-serif text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl;
+  }
+  .section-title {
+    @apply font-serif text-xl font-bold text-slate-900 sm:text-2xl;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-800 text-white shadow-sm hover:bg-brand-900 hover:shadow-md active:translate-y-px;
+  }
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white text-slate-700 shadow-sm hover:border-slate-400 hover:bg-slate-50;
+  }
+  .btn-ghost {
+    @apply btn text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+  .btn-danger {
+    @apply btn border border-red-200 bg-white text-red-700 shadow-sm hover:border-red-300 hover:bg-red-50;
+  }
+  .btn-light {
+    @apply btn bg-white text-brand-900 shadow-sm hover:bg-brand-50;
+  }
+  .btn-outline-light {
+    @apply btn border border-white/30 text-white hover:border-white/60 hover:bg-white/10;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-semibold text-slate-700;
+  }
+
+  /* 엷은 모눈 무늬 배경 (페이지 머리말에 사용) */
+  .bg-grid {
+    background-image: linear-gradient(to right, rgb(15 23 42 / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(15 23 42 / 0.045) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 }
 
 /* 마크다운 본문 스타일 (MarkdownView 컴포넌트에서 사용) */
 .markdown {
-  @apply break-words leading-relaxed text-slate-800;
+  @apply break-words text-[15.5px] leading-[1.85] text-slate-700;
 }
-.markdown > * + * {
-  @apply mt-3;
+.markdown > * + * { @apply mt-4; }
+.markdown h1 { @apply font-serif text-2xl font-bold text-slate-900; }
+.markdown h2 { @apply mt-8 border-b border-slate-100 pb-2 font-serif text-xl font-bold text-slate-900; }
+.markdown h3 { @apply mt-6 text-lg font-semibold text-slate-900; }
+.markdown strong { @apply font-semibold text-slate-900; }
+.markdown ul { @apply list-disc space-y-1 pl-6 marker:text-brand-400; }
+.markdown ol { @apply list-decimal space-y-1 pl-6 marker:text-brand-500; }
+.markdown a { @apply font-medium text-brand-700 underline decoration-brand-200 underline-offset-4 hover:decoration-brand-500; }
+.markdown blockquote { @apply rounded-r-lg border-l-4 border-accent-400 bg-accent-50/60 px-4 py-2 text-slate-600; }
+.markdown code { @apply rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[0.85em] text-brand-900; }
+.markdown pre { @apply overflow-x-auto rounded-xl bg-brand-950 p-4 text-slate-100; }
+.markdown pre code { @apply bg-transparent p-0 text-slate-100; }
+.markdown table { @apply block overflow-x-auto border-collapse text-sm; }
+.markdown th { @apply border border-slate-200 bg-slate-50 px-3 py-1.5 text-left font-semibold; }
+.markdown td { @apply border border-slate-200 px-3 py-1.5; }
+.markdown hr { @apply my-8 border-slate-200; }
+/* 별도 줄 수식: 엷은 배경 상자 + 긴 수식은 가로 스크롤 */
+.markdown .katex-display {
+  @apply my-5 overflow-x-auto overflow-y-hidden rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-4;
 }
-.markdown h1 { @apply text-xl font-bold; }
-.markdown h2 { @apply mt-6 text-lg font-bold; }
-.markdown h3 { @apply mt-4 font-semibold; }
-.markdown ul { @apply list-disc pl-6; }
-.markdown ol { @apply list-decimal pl-6; }
-.markdown a { @apply text-brand-700 underline; }
-.markdown blockquote { @apply border-l-4 border-slate-200 pl-4 text-slate-600; }
-.markdown code { @apply rounded bg-slate-100 px-1 py-0.5 text-[0.9em]; }
-.markdown pre { @apply overflow-x-auto rounded-md bg-slate-100 p-3; }
-.markdown pre code { @apply bg-transparent p-0; }
-.markdown table { @apply block overflow-x-auto border-collapse; }
-.markdown th, .markdown td { @apply border border-slate-200 px-3 py-1; }
-/* 긴 수식은 가로 스크롤 */
-.markdown .katex-display { @apply overflow-x-auto overflow-y-hidden py-1; }
+.markdown .katex { font-size: 1.08em; }

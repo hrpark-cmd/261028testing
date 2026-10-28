@@ -18,6 +18,7 @@ export function formatDateTime(ms: number): string {
 export function excerpt(markdown: string, max = 110): string {
   const text = markdown
     .replace(/\$\$[\s\S]*?\$\$/g, " ") // 별도 줄 수식 제거
+    .replace(/\$[^$\n]+\$/g, "(수식)") // 문장 속 수식은 "(수식)"으로 표시
     .replace(/[#>*_`\-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();

@@ -5,11 +5,9 @@ import { researchService } from "../services";
 import { useAuth } from "../contexts/AuthContext";
 import { useAsync } from "../lib/useAsync";
 import { toErrorMessage } from "../lib/format";
+import ContentDetail from "../components/ContentDetail";
 import ContentForm from "../components/ContentForm";
-import DetailHeader from "../components/DetailHeader";
-import LinkList from "../components/LinkList";
-import MarkdownView from "../components/MarkdownView";
-import RelatedDiscussion from "../components/RelatedDiscussion";
+import Icon from "../components/Icon";
 import { Empty, ErrorMessage, Loading } from "../components/Status";
 
 export default function ResearchDetail() {
@@ -20,12 +18,14 @@ export default function ResearchDetail() {
   const [editing, setEditing] = useState(false);
 
   if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} onRetry={reload} />;
+  if (error) return <div className="container-page py-10"><ErrorMessage message={error} onRetry={reload} /></div>;
   if (!item)
     return (
-      <Empty>
-        연구를 찾을 수 없습니다. <Link to="/research" className="text-brand-700 underline">목록으로</Link>
-      </Empty>
+      <div className="container-page py-16">
+        <Empty>
+          연구를 찾을 수 없습니다. <Link to="/research" className="font-semibold text-brand-700 underline">목록으로</Link>
+        </Empty>
+      </div>
     );
 
   async function handleDelete() {
@@ -40,43 +40,40 @@ export default function ResearchDetail() {
 
   if (editing)
     return (
-      <ContentForm
-        heading="연구 수정"
-        initial={item}
-        onCancel={() => setEditing(false)}
-        onSubmit={async ({ base }) => {
-          await researchService.update(id, base);
-          setEditing(false);
-          reload();
-        }}
-      />
+      <div className="container-page py-10">
+        <ContentForm
+          heading="연구 수정"
+          initial={item}
+          onCancel={() => setEditing(false)}
+          onSubmit={async ({ base }) => {
+            await researchService.update(id, base);
+            setEditing(false);
+            reload();
+          }}
+        />
+      </div>
     );
 
   return (
-    <article>
-      <DetailHeader
-        backTo="/research"
-        backLabel="연구 목록"
-        title={item.title}
-        createdAt={item.createdAt}
-        tags={item.tags}
-        adminActions={
-          user?.isAdmin && (
-            <>
-              <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>수정</button>
-              <button type="button" className="btn-danger" onClick={handleDelete}>삭제</button>
-            </>
-          )
-        }
-      />
-      <MarkdownView content={item.summary} />
-      {item.links.length > 0 && (
-        <section className="mt-8">
-          <h2 className="mb-3 text-lg font-semibold text-slate-900">자료 링크</h2>
-          <LinkList links={item.links} />
-        </section>
-      )}
-      <RelatedDiscussion type="research" id={item.id} />
-    </article>
+    <ContentDetail
+      item={item}
+      type="research"
+      eyebrow="Research"
+      back={{ to: "/research", label: "연구 목록" }}
+      adminActions={
+        user?.isAdmin && (
+          <>
+            <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>
+              <Icon name="pencil" className="h-4 w-4" />
+              수정
+            </button>
+            <button type="button" className="btn-danger" onClick={handleDelete}>
+              <Icon name="trash" className="h-4 w-4" />
+              삭제
+            </button>
+          </>
+        )
+      }
+    />
   );
 }

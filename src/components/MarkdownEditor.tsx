@@ -16,47 +16,45 @@ export default function MarkdownEditor({ id, label, value, onChange, rows = 10, 
   const [tab, setTab] = useState<"write" | "preview">("write");
 
   const tabClass = (t: typeof tab) =>
-    `px-3 py-1 text-sm rounded-md ${tab === t ? "bg-brand-50 font-medium text-brand-700" : "text-slate-500"}`;
+    `rounded-md px-3 py-1 text-xs font-semibold transition ${tab === t ? "bg-white text-brand-800 shadow-sm" : "text-slate-500"}`;
 
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-1.5 flex items-center justify-between">
         <label htmlFor={id} className="label mb-0">
           {label}
         </label>
-        <div className="flex gap-1 md:hidden">
-          <button type="button" className={tabClass("write")} onClick={() => setTab("write")}>
-            작성
-          </button>
-          <button type="button" className={tabClass("preview")} onClick={() => setTab("preview")}>
-            미리보기
-          </button>
+        <div className="flex gap-0.5 rounded-lg bg-slate-100 p-0.5 md:hidden">
+          <button type="button" className={tabClass("write")} onClick={() => setTab("write")}>작성</button>
+          <button type="button" className={tabClass("preview")} onClick={() => setTab("preview")}>미리보기</button>
         </div>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <textarea
-          id={id}
-          className={`input font-mono ${tab === "preview" ? "hidden md:block" : ""}`}
-          rows={rows}
-          value={value}
-          placeholder={placeholder ?? "마크다운으로 작성하세요. 수식: $E = mc^2$, 별도 줄 수식: $$\\sigma = E\\varepsilon$$"}
-          onChange={(e) => onChange(e.target.value)}
-        />
-        <div
-          className={`min-h-[8rem] overflow-auto rounded-md border border-dashed border-slate-300 bg-slate-50 p-3 ${
-            tab === "write" ? "hidden md:block" : ""
-          }`}
-          aria-label="미리보기"
-        >
-          {value.trim() ? (
-            <MarkdownView content={value} />
-          ) : (
-            <p className="text-sm text-slate-400">미리보기가 여기에 표시됩니다.</p>
-          )}
+        <div className={tab === "preview" ? "hidden md:block" : ""}>
+          <p className="mb-1 hidden text-xs font-medium text-slate-400 md:block">작성</p>
+          <textarea
+            id={id}
+            className="input min-h-[12rem] font-mono text-[13px] leading-relaxed"
+            rows={rows}
+            value={value}
+            placeholder={placeholder ?? "마크다운으로 작성하세요. 수식: $E = mc^2$, 별도 줄 수식: $$\\sigma = E\\varepsilon$$"}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </div>
+        <div className={tab === "write" ? "hidden md:block" : ""}>
+          <p className="mb-1 hidden text-xs font-medium text-slate-400 md:block">미리보기</p>
+          <div className="min-h-[12rem] overflow-auto rounded-lg border border-slate-200 bg-slate-50/60 p-4" aria-label="미리보기">
+            {value.trim() ? (
+              <MarkdownView content={value} />
+            ) : (
+              <p className="text-sm text-slate-400">입력한 내용이 여기에 표시됩니다.</p>
+            )}
+          </div>
         </div>
       </div>
-      <p className="mt-1 text-xs text-slate-500">
-        팁: 문장 속 수식은 <code>$...$</code>, 별도 줄 수식은 <code>$$...$$</code> 로 감싸세요.
+      <p className="mt-2 text-xs text-slate-500">
+        팁: 문장 속 수식은 <code className="rounded bg-slate-100 px-1">$...$</code>, 별도 줄 수식은{" "}
+        <code className="rounded bg-slate-100 px-1">$$...$$</code> 로 감싸세요.
       </p>
     </div>
   );

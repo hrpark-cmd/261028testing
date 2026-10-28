@@ -8,7 +8,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { useAsync } from "../lib/useAsync";
 import { toErrorMessage } from "../lib/format";
 import Card from "../components/Card";
+import Icon from "../components/Icon";
 import MarkdownEditor from "../components/MarkdownEditor";
+import PageHeader from "../components/PageHeader";
 import { Loading } from "../components/Status";
 
 function parseRelatedType(value: string | null): RelatedType | null {
@@ -65,28 +67,32 @@ export default function PostNew() {
   }
 
   return (
-    <div>
-      <Link to="/discussion" className="text-sm text-slate-500 hover:text-brand-700">← 토론 목록</Link>
-      <h1 className="page-title mt-3 mb-6">새 글 쓰기</h1>
-      <Card>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {related && (
-            <p className="rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-800">
-              연결된 자료: <Link to={related.path} className="font-medium underline">{related.title}</Link>
-            </p>
-          )}
-          <div>
-            <label className="label" htmlFor="post-title">제목</label>
-            <input id="post-title" className="input" value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} />
-          </div>
-          <MarkdownEditor id="post-content" label="내용 (마크다운·수식 지원)" value={content} onChange={setContent} rows={12} />
-          {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
-          <div className="flex gap-2">
-            <button type="submit" className="btn-primary" disabled={saving}>{saving ? "등록 중…" : "등록"}</button>
-            <button type="button" className="btn-secondary" onClick={() => navigate(-1)} disabled={saving}>취소</button>
-          </div>
-        </form>
-      </Card>
-    </div>
+    <>
+      <PageHeader eyebrow="New Post" title="새 글 쓰기" back={{ to: "/discussion", label: "토론 목록" }} />
+      <div className="container-page py-10">
+        <Card>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {related && (
+              <p className="flex items-center gap-2 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-800">
+                <Icon name="link" className="h-4 w-4 shrink-0" />
+                <span>
+                  연결된 자료: <Link to={related.path} className="font-semibold underline underline-offset-2">{related.title}</Link>
+                </span>
+              </p>
+            )}
+            <div>
+              <label className="label" htmlFor="post-title">제목</label>
+              <input id="post-title" className="input text-base" value={title} maxLength={200} placeholder="제목을 입력하세요" onChange={(e) => setTitle(e.target.value)} />
+            </div>
+            <MarkdownEditor id="post-content" label="내용 (마크다운·수식 지원)" value={content} onChange={setContent} rows={12} />
+            {error && <p className="text-sm font-medium text-red-700" role="alert">{error}</p>}
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-5">
+              <button type="button" className="btn-secondary" onClick={() => navigate(-1)} disabled={saving}>취소</button>
+              <button type="submit" className="btn-primary px-6" disabled={saving}>{saving ? "등록 중…" : "등록"}</button>
+            </div>
+          </form>
+        </Card>
+      </div>
+    </>
   );
 }

@@ -6,7 +6,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { toErrorMessage } from "../lib/format";
 import { SITE } from "../config/site";
-import Card from "../components/Card";
+import LogoMark from "../components/LogoMark";
+import MeshPattern from "../components/MeshPattern";
 
 /** 로그인 후 돌아갈 주소. 외부 사이트로 튕기지 않도록 "/" 로 시작하는 내부 주소만 허용 */
 function safeRedirect(value: string | null): string {
@@ -34,41 +35,58 @@ export default function Login() {
   }
 
   return (
-    <div className="mx-auto max-w-sm">
-      <Card className="text-center">
-        <h1 className="text-xl font-bold text-slate-900">로그인</h1>
-        <p className="mt-2 text-sm text-slate-600">{SITE.labName} 토론 게시판에 글과 댓글을 남기려면 로그인하세요.</p>
-
-        {user ? (
-          <div className="mt-6 flex flex-col gap-3">
-            <p className="text-sm text-slate-700">
-              <span className="font-medium">{user.displayName}</span> 님으로 로그인되어 있습니다.
+    <div className="container-page py-12 sm:py-20">
+      <div className="card mx-auto grid max-w-4xl overflow-hidden p-0 md:grid-cols-2">
+        {/* 왼쪽: 소개 패널 */}
+        <div className="relative hidden overflow-hidden bg-brand-950 p-10 text-white md:block">
+          <MeshPattern className="text-white/[0.08]" />
+          <div className="relative flex h-full flex-col">
+            <LogoMark className="h-11 w-11" />
+            <h2 className="mt-auto font-serif text-2xl font-bold leading-snug">{SITE.labName}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-brand-100">
+              로그인하면 토론 게시판에 글과 댓글을 남기고, 대학원생들과 연구 결과를 함께 논의할 수 있습니다.
             </p>
-            <Link to="/" className="btn-primary">홈으로</Link>
-            <button type="button" className="btn-secondary" onClick={() => signOut()}>로그아웃</button>
           </div>
-        ) : (
-          <div className="mt-6 flex flex-col gap-3">
-            <button type="button" className="btn-secondary py-2.5" disabled={busy} onClick={() => handleSignIn(false)}>
-              <GoogleIcon /> Google로 로그인
-            </button>
-            {isDemo && (
-              <button type="button" className="btn-secondary py-2.5" disabled={busy} onClick={() => handleSignIn(true)}>
-                🛠 데모 관리자로 로그인
+        </div>
+
+        {/* 오른쪽: 로그인 버튼 */}
+        <div className="p-8 sm:p-10">
+          <p className="eyebrow">Sign in</p>
+          <h1 className="mt-2 font-serif text-2xl font-bold text-slate-900">로그인</h1>
+          <p className="mt-2 text-sm text-slate-600">학교 또는 개인 Google 계정으로 로그인하세요.</p>
+
+          {user ? (
+            <div className="mt-8 flex flex-col gap-3">
+              <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <span className="font-semibold">{user.displayName}</span> 님으로 로그인되어 있습니다.
+              </p>
+              <Link to="/" className="btn-primary py-2.5">홈으로</Link>
+              <button type="button" className="btn-secondary py-2.5" onClick={() => signOut()}>로그아웃</button>
+            </div>
+          ) : (
+            <div className="mt-8 flex flex-col gap-3">
+              <button type="button" className="btn-secondary py-3 text-[15px]" disabled={busy} onClick={() => handleSignIn(false)}>
+                <GoogleIcon /> Google로 로그인
               </button>
-            )}
-          </div>
-        )}
+              {isDemo && (
+                <button type="button" className="btn-ghost border border-dashed border-slate-300 py-3" disabled={busy} onClick={() => handleSignIn(true)}>
+                  데모 관리자로 로그인
+                </button>
+              )}
+            </div>
+          )}
 
-        {error && <p className="mt-4 text-sm text-red-700" role="alert">{error}</p>}
+          {error && <p className="mt-4 text-sm font-medium text-red-700" role="alert">{error}</p>}
 
-        {isDemo && !user && (
-          <p className="mt-6 rounded-md bg-amber-50 p-3 text-left text-xs leading-relaxed text-amber-800">
-            <strong>데모 모드</strong>입니다. 실제 Google 계정을 사용하지 않으며, 작성한 내용은 이 브라우저에만 저장됩니다.
-            "데모 관리자"로 로그인하면 연구·수업자료 작성/수정/삭제를 시험해 볼 수 있습니다.
-          </p>
-        )}
-      </Card>
+          {isDemo && !user && (
+            <div className="mt-8 rounded-xl border border-accent-100 bg-accent-50/70 p-4 text-xs leading-relaxed text-amber-900">
+              <p className="mb-1 font-semibold">데모 모드 안내</p>
+              실제 Google 계정을 사용하지 않으며, 작성한 내용은 이 브라우저에만 저장됩니다. "데모 관리자"로 로그인하면 연구·수업자료
+              작성/수정/삭제를 시험해 볼 수 있습니다.
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
