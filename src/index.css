@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 자주 쓰는 스타일 묶음 */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-1 rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-700 text-white hover:bg-brand-800;
+  }
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+  }
+  .btn-danger {
+    @apply btn border border-red-200 bg-white text-red-700 hover:bg-red-50;
+  }
+  .input {
+    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-slate-700;
+  }
+  .page-title {
+    @apply text-2xl font-bold text-slate-900 sm:text-3xl;
+  }
+}
+
+/* 마크다운 본문 스타일 (MarkdownView 컴포넌트에서 사용) */
+.markdown {
+  @apply break-words leading-relaxed text-slate-800;
+}
+.markdown > * + * {
+  @apply mt-3;
+}
+.markdown h1 { @apply text-xl font-bold; }
+.markdown h2 { @apply mt-6 text-lg font-bold; }
+.markdown h3 { @apply mt-4 font-semibold; }
+.markdown ul { @apply list-disc pl-6; }
+.markdown ol { @apply list-decimal pl-6; }
+.markdown a { @apply text-brand-700 underline; }
+.markdown blockquote { @apply border-l-4 border-slate-200 pl-4 text-slate-600; }
+.markdown code { @apply rounded bg-slate-100 px-1 py-0.5 text-[0.9em]; }
+.markdown pre { @apply overflow-x-auto rounded-md bg-slate-100 p-3; }
+.markdown pre code { @apply bg-transparent p-0; }
+.markdown table { @apply block overflow-x-auto border-collapse; }
+.markdown th, .markdown td { @apply border border-slate-200 px-3 py-1; }
+/* 긴 수식은 가로 스크롤 */
+.markdown .katex-display { @apply overflow-x-auto overflow-y-hidden py-1; }

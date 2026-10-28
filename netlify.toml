@@ -1,11 +1,14 @@
-# Netlify 배포 설정 — 빌드 과정 없는 정적 사이트입니다.
+# Netlify 배포 설정
+# - GitHub에 push 하면 Netlify가 아래 명령으로 빌드하고 dist 폴더를 배포합니다.
 [build]
-  publish = "."
-  command = ""
+  command = "npm run build"
+  publish = "dist"
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA 라우팅: 어떤 주소로 새로고침해도 index.html 을 보여줍니다 (public/_redirects 와 같은 역할)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
