@@ -10,7 +10,9 @@ const MESSAGES: Record<string, string> = {
     "이 사이트 주소가 Firebase 승인된 도메인에 없습니다. Firebase 콘솔 > Authentication > 설정 > 승인된 도메인에 추가해 주세요.",
   "auth/operation-not-allowed": "Firebase 콘솔에서 Google 로그인이 사용 설정되어 있지 않습니다.",
   "auth/network-request-failed": "네트워크 연결을 확인해 주세요.",
-  "auth/invalid-api-key": "Firebase API 키가 올바르지 않습니다. 환경변수를 확인해 주세요.",
+  "auth/invalid-api-key": "Firebase API 키가 올바르지 않습니다. Netlify 환경변수 VITE_FIREBASE_API_KEY 를 확인해 주세요.",
+  "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
+    "Firebase API 키가 올바르지 않습니다. Netlify 환경변수 VITE_FIREBASE_API_KEY 를 확인해 주세요.",
   // Firestore
   "permission-denied": "권한이 없습니다. 로그인 상태나 관리자 권한을 확인해 주세요.",
   unauthenticated: "로그인이 필요합니다.",

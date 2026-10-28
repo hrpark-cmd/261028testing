@@ -17,6 +17,11 @@ const firebaseConfig = {
 
 export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId);
 
+// 흔한 실수: 화면에 가려진 값(•••)이나 따옴표·공백을 그대로 복사해 넣은 경우 개발자 도구에 알려 줍니다.
+if (firebaseConfig.apiKey && !/^[A-Za-z0-9_-]{30,}$/.test(firebaseConfig.apiKey)) {
+  console.error("VITE_FIREBASE_API_KEY 값 형식이 이상합니다. 가려진 글자(•)·따옴표·공백 없이 실제 키를 넣었는지 확인하세요.");
+}
+
 export const firebaseApp: FirebaseApp | null = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;
 export const auth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
 export const db: Firestore | null = firebaseApp ? getFirestore(firebaseApp) : null;
