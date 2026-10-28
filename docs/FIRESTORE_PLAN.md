@@ -68,110 +68,21 @@ research 필드 전부 + 아래 필드
 
 ## 3. 필요한 색인(Index)
 
-| 컬렉션 | 필드 | 용도 |
-|---|---|---|
-| posts | `relatedType` 오름차순, `relatedId` 오름차순, `createdAt` 내림차순 | 자료 상세 페이지의 "관련 토론" |
+**추가로 만들 색인이 없습니다.** 정렬은 단일 필드(`createdAt`)만 쓰고, "관련 토론"은 같음(==) 조건 두 개로만 조회한 뒤 화면에서 정렬하기 때문에 Firestore가 자동으로 만든 색인으로 충분합니다.
 
-처음 해당 쿼리를 실행하면 브라우저 콘솔에 색인 생성 링크가 나옵니다. 그 링크를 누르면 바로 만들어집니다. 단일 필드 정렬(`createdAt`)은 자동으로 만들어집니다.
+## 4. 보안 규칙
 
-## 4. 보안 규칙 초안
+규칙 전체는 저장소의 **[`firestore.rules`](../firestore.rules)** 파일에 있습니다. Firebase 콘솔 → Firestore Database → **규칙** 탭에 붙여넣고 **게시**합니다.
 
-Firebase 콘솔 → Firestore Database → **규칙** 탭에 붙여넣고 **게시**합니다.
+- **관리자 이메일:** `ADMIN_EMAILS` 목록을 `src/config/site.ts`와 **똑같이** 맞춰 주세요. 데모용 `demo-admin@example.com`은 빼도 됩니다.
+- **읽기 범위:** `PUBLIC_READ` 함수 한 줄로 고릅니다. `true`면 누구나, `signedIn()`이면 로그인한 사람만 읽습니다.
+- **쓰기 권한:**
+  - 연구·수업자료: 관리자만
+  - 글·댓글 작성: 로그인 사용자
+  - 삭제: 작성자 또는 관리자. 글 작성자는 자기 글에 달린 댓글도 지울 수 있습니다. 글을 지울 때 댓글을 함께 지우기 위해서입니다.
+- **입력값 검사:** 작성 시각은 서버 시각만 허용하고, 글자 수에 제한을 둡니다.
 
-- `ADMIN_EMAILS` 목록은 `src/config/site.ts` 와 **똑같이** 맞춰 주세요. 데모용 `demo-admin@example.com` 은 빼도 됩니다.
-- 읽기 공개 범위는 `PUBLIC_READ` 함수 한 줄로 고릅니다. `true`면 누구나, `signedIn()`이면 로그인한 사람만 읽을 수 있습니다.
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    // ── 설정 ─────────────────────────────────────
-    function ADMIN_EMAILS() {
-      return ['professor@example.com'];
-    }
-    // 읽기 공개 범위: true(누구나) 또는 signedIn()(로그인 사용자만)
-    function PUBLIC_READ() {
-      return true;
-    }
-
-    // ── 공통 함수 ────────────────────────────────
-    function signedIn() {
-      return request.auth != null;
-    }
-    function isAdmin() {
-      return signedIn()
-        && request.auth.token.email_verified == true
-        && request.auth.token.email in ADMIN_EMAILS();
-    }
-    function isOwner(data) {
-      return signedIn() && data.authorId == request.auth.uid;
-    }
-    function validContent(d) {
-      return d.title is string && d.title.size() > 0 && d.title.size() <= 200
-        && d.summary is string && d.summary.size() <= 20000
-        && d.tags is list && d.links is list;
-    }
-
-    // ── 연구 / 수업자료: 읽기 공개, 쓰기는 관리자만 ──
-    match /research/{id} {
-      allow read: if PUBLIC_READ();
-      allow create, update: if isAdmin() && validContent(request.resource.data);
-      allow delete: if isAdmin();
-    }
-    match /courses/{id} {
-      allow read: if PUBLIC_READ();
-      allow create, update: if isAdmin() && validContent(request.resource.data)
-        && request.resource.data.course is string
-        && request.resource.data.week is int;
-      allow delete: if isAdmin();
-    }
-
-    // ── 토론 게시글 ─────────────────────────────
-    match /posts/{postId} {
-      allow read: if PUBLIC_READ();
-      allow create: if signedIn()
-        && request.resource.data.authorId == request.auth.uid
-        && request.resource.data.title is string
-        && request.resource.data.title.size() > 0
-        && request.resource.data.title.size() <= 200
-        && request.resource.data.content is string
-        && request.resource.data.content.size() <= 20000
-        && request.resource.data.commentCount == 0;
-      // 작성자·관리자: 수정/삭제
-      allow update: if (isOwner(resource.data) || isAdmin())
-        && request.resource.data.authorId == resource.data.authorId;
-      allow delete: if isOwner(resource.data) || isAdmin();
-      // 로그인 사용자: 댓글 수(commentCount)만 ±1 변경 가능
-      allow update: if signedIn()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount'])
-        && (request.resource.data.commentCount == resource.data.commentCount + 1
-            || request.resource.data.commentCount == resource.data.commentCount - 1);
-
-      // ── 댓글 ──────────────────────────────────
-      match /comments/{commentId} {
-        allow read: if PUBLIC_READ();
-        allow create: if signedIn()
-          && request.resource.data.authorId == request.auth.uid
-          && request.resource.data.postId == postId
-          && request.resource.data.content is string
-          && request.resource.data.content.size() > 0
-          && request.resource.data.content.size() <= 5000;
-        allow delete: if isOwner(resource.data) || isAdmin();
-        allow update: if false;
-      }
-    }
-
-    // ── 사용자 프로필 ───────────────────────────
-    match /users/{uid} {
-      allow read: if signedIn();
-      allow write: if signedIn() && request.auth.uid == uid;
-    }
-  }
-}
-```
-
-> 참고: Cloud Functions가 없으므로, 게시글을 삭제해도 하위 댓글이 자동으로 지워지지 않습니다. `deletePost` 구현에서 댓글을 먼저 `writeBatch`로 지운 뒤 게시글을 지우세요(관리자 또는 글 작성자만 가능하도록 위 규칙의 comments `delete`에 `|| isOwner(get(/databases/$(database)/documents/posts/$(postId)).data)` 조건을 추가).
+> Cloud Functions가 없으므로 글을 지울 때 앱이 댓글을 먼저 지운 뒤 글을 지웁니다(`writeBatch`). 한 번에 지울 수 있는 댓글은 최대 499개입니다.
 
 ## 5. Spark 무료 한도 지키기
 
@@ -184,7 +95,7 @@ service cloud.firestore {
 
 설계 원칙:
 
-1. **페이지네이션**: 게시글은 `orderBy('createdAt','desc')` + `limit(20)`, 다음 페이지는 `startAfter(마지막 문서)`로 불러옵니다. 서비스 함수의 `cursor`에는 마지막 문서 id를 담고, 다음 호출에서 그 문서를 `getDoc`해 `startAfter`에 넘깁니다.
+1. **페이지네이션**: 게시글은 `orderBy('createdAt','desc')` + `limit(21)`(다음 페이지 유무 확인용 1개 포함), 다음 페이지는 `startAfter(마지막 문서)`로 불러옵니다.
 2. **실시간 리스너(onSnapshot) 사용 안 함**: 필요할 때 `getDocs`/`getDoc`으로 한 번만 읽습니다. 리스너는 화면을 띄워 둔 동안 변경마다 읽기가 생깁니다.
 3. **댓글 수는 게시글에 저장**(`commentCount`, `increment(±1)`): 목록에서 댓글 컬렉션을 읽지 않습니다.
 4. **댓글은 글 상세 화면에서만** 불러옵니다.
@@ -204,15 +115,13 @@ service cloud.firestore {
 - [ ] 빌드 → **Authentication** → 시작하기 → 로그인 방법 → **Google** 사용 설정 (지원 이메일 선택)
 - [ ] Authentication → 설정 → **승인된 도메인**에 Netlify 주소(`xxxx.netlify.app`)와 사용자 지정 도메인 추가
 - [ ] 빌드 → **Firestore Database** → 데이터베이스 만들기 → 위치 `asia-northeast3 (서울)` → **프로덕션 모드**
-- [ ] Firestore → **규칙** 탭에 4번 규칙을 붙여넣고 게시 (`ADMIN_EMAILS` 수정)
+- [ ] Firestore → **규칙** 탭에 `firestore.rules` 내용을 붙여넣고 게시 (`ADMIN_EMAILS` 수정)
 - [ ] `src/config/site.ts`의 `ADMIN_EMAILS`에 교수님 Google 이메일 추가
 - [ ] (선택) 데모 데이터(`src/data/seed.ts`)를 Firestore에 옮길지 결정
 
-## 7. 코드 작업 순서 (연동 단계)
+## 7. 코드 구현 상태
 
-1. `src/lib/firebase.ts`에 `auth`, `db` 내보내기 추가
-2. `src/services/firebase/` 폴더에 `contentService.ts`, `postService.ts`, `authService.ts` 작성 (`types.ts` 인터페이스 그대로 구현)
-   - 로그인: `signInWithPopup(auth, new GoogleAuthProvider())`, 로그인 시 `users/{uid}` 저장
-   - `isAdmin`: `isAdminEmail(user.email)`
-3. `src/services/index.ts`에서 `VITE_USE_FIREBASE`에 따라 구현체 선택 (TODO 주석 위치)
-4. 화면 코드는 바꿀 필요 없음 (모든 화면이 `services`만 사용)
+- [x] `src/lib/firebase.ts`: 설정값이 있을 때만 `auth`, `db` 초기화
+- [x] `src/services/firebase/`: `contentService.ts`, `postService.ts`, `authService.ts`, 오류 메시지 한국어 변환(`errors.ts`)
+- [x] `src/services/index.ts`: `VITE_USE_FIREBASE=true`이고 설정값이 있으면 Firebase, 아니면 데모 모드
+- 화면 코드는 바꾸지 않았습니다. 모든 화면이 `services`만 사용합니다.

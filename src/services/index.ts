@@ -2,24 +2,28 @@
 // 서비스 선택 스위치
 // 화면에서는 항상 이 파일에서 서비스를 가져다 씁니다:
 //   import { researchService } from "../services";
-// 환경변수 VITE_USE_FIREBASE=true 이면 Firebase 구현을, 아니면 localStorage(데모) 구현을 씁니다.
+// - VITE_USE_FIREBASE=true 이고 Firebase 설정값이 있으면 → Firebase (Firestore + Google 로그인)
+// - 그 외 → 데모 모드 (localStorage + 가짜 로그인)
 // ─────────────────────────────────────────────────────────────
 import type { AuthService, CourseService, PostService, ResearchService } from "./types";
+import { isFirebaseConfigured } from "../lib/firebase";
 import { localResearchService, localCourseService } from "./local/contentService";
 import { localPostService } from "./local/postService";
 import { localAuthService } from "./local/authService";
+import { firebaseResearchService, firebaseCourseService } from "./firebase/contentService";
+import { firebasePostService } from "./firebase/postService";
+import { firebaseAuthService } from "./firebase/authService";
 
 const wantsFirebase = import.meta.env.VITE_USE_FIREBASE === "true";
+export const usingFirebase = wantsFirebase && isFirebaseConfigured;
 
-// TODO(Firebase 연동 단계): services/firebase/ 구현체를 만든 뒤 아래처럼 교체합니다.
-//   export const researchService = wantsFirebase ? firebaseResearchService : localResearchService;
-if (wantsFirebase) {
-  console.warn("VITE_USE_FIREBASE=true 이지만 아직 Firebase 구현이 없어 데모 모드로 동작합니다.");
+if (wantsFirebase && !isFirebaseConfigured) {
+  console.warn("VITE_USE_FIREBASE=true 이지만 VITE_FIREBASE_* 설정값이 없어 데모 모드로 동작합니다.");
 }
 
-export const researchService: ResearchService = localResearchService;
-export const courseService: CourseService = localCourseService;
-export const postService: PostService = localPostService;
-export const authService: AuthService = localAuthService;
+export const researchService: ResearchService = usingFirebase ? firebaseResearchService : localResearchService;
+export const courseService: CourseService = usingFirebase ? firebaseCourseService : localCourseService;
+export const postService: PostService = usingFirebase ? firebasePostService : localPostService;
+export const authService: AuthService = usingFirebase ? firebaseAuthService : localAuthService;
 
 export type * from "./types";
