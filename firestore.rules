@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// Firebase 콘솔 > Firestore Database > 규칙(Rules) 탭에 붙여넣고 "게시"하세요.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // 관리자(교수) 여부: admins/{uid} 문서가 존재하면 관리자
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // 관리자 목록: 본인 문서만 읽기 가능, 쓰기는 콘솔에서만
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // 사용자 프로필: 로그인 사용자 읽기, 본인만 쓰기
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // 연구 자료 / 수업 자료: 누구나 읽기, 관리자만 쓰기
+    match /research/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /courses/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 토론 게시판: 로그인 사용자만 읽기/쓰기
+    match /posts/{postId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.body is string
+        && request.resource.data.body.size() <= 20000;
+      allow update, delete: if isAdmin()
+        || (signedIn() && resource.data.authorUid == request.auth.uid);
+      // 댓글 작성/삭제 시 누구나 commentCount 만 바꿀 수 있음
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount']);
+
+      match /comments/{commentId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() <= 5000;
+        allow update, delete: if isAdmin()
+          || (signedIn() && resource.data.authorUid == request.auth.uid);
+      }
+    }
+  }
+}

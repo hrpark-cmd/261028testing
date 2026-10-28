@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>게시글 | OO 연구실</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">OO 연구실</a>
+      <nav class="nav">
+        <a href="index.html">홈</a>
+        <a href="research.html">연구</a>
+        <a href="courses.html">수업</a>
+        <a href="discussion.html">토론</a>
+      </nav>
+      <div id="auth-box" class="auth-box"></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p><a href="discussion.html">← 목록으로</a></p>
+    <article id="post" class="card"></article>
+    <h3>댓글</h3>
+    <div id="comment-list" class="stack"></div>
+    <form id="comment-form" class="card form" hidden>
+      <textarea name="body" rows="3" placeholder="댓글을 입력하세요" required maxlength="5000"></textarea>
+      <button class="btn" type="submit">댓글 달기</button>
+    </form>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap small muted">© 2026 OO 연구실 · 기계공학과</div>
+  </footer>
+  <script type="module" src="js/layout.js"></script>
+  <script type="module" src="js/post.js"></script>
+</body>
+</html>
